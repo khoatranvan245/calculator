@@ -7,26 +7,27 @@ const App = () => {
   const [isShowResult, setIsShowResult] = useState(false)
 
   const stringToResult = (input) => {
+    //Adding top method to array
     if (!Array.prototype.top) {
       Array.prototype.top = function () {
         return this[this.length - 1]
       }
     }
 
+    const countFloatNumber = (number) => {
+      let string = number.toString();
+      let dotPosition = string.indexOf('.')
+
+      if (dotPosition === -1) return 0
+      
+      let result = string.length - dotPosition - 1
+
+      return result
+    }
+
     const getPriority = (operator) => {
       if (operator === '+' || operator === '-') return 1
       if (operator === 'x' || operator === '/') return 2
-    }
-
-    const checkOperator = (char) => {
-      if (
-        char === '+' ||
-        char === '-' ||
-        char === 'x' ||
-        char === '/'
-      )
-        return true
-      else return false
     }
 
     const getInFixStack = (inFix) => {
@@ -35,10 +36,10 @@ const App = () => {
         subString = '',
         stack = []
       while (pos <= inFix.length) {
-        if (!checkOperator(inFix[pos])) {
+        if (!isOperator(inFix[pos])) {
           subString += inFix[pos]
           pos++
-        } else if (checkOperator(inFix[pos])) {
+        } else if (isOperator(inFix[pos])) {
           stack.push(Number(subString))
           stack.push(inFix[pos])
           subString = ''
@@ -58,7 +59,7 @@ const App = () => {
           output.push(inFixStack[i])
         if (typeof inFixStack[i] == 'string') {
           while (
-            checkOperator(stack.top()) &&
+            isOperator(stack.top()) &&
             getPriority(stack.top()) >= getPriority(inFixStack[i])
           ) {
             output.push(stack.top())
@@ -101,11 +102,13 @@ const App = () => {
     const innerFix = input
     let innerFixStack = getInFixStack(innerFix)
     let postFixStack = getPostFixStack(innerFixStack)
-    console.log(getResult(postFixStack))
-    return getResult(postFixStack)
+    let result = getResult(postFixStack)
+
+    if (countFloatNumber(result) <= 3) return result;
+    else return result.toFixed(3)
   }
 
-  const checkOperator = (char) => {
+  const isOperator = (char) => {
     if (char == '+' || char == '-' || char == 'x' || char == '/')
       return true
     else return false
@@ -113,7 +116,7 @@ const App = () => {
 
   const checkRedundantZero = (string) => {
     if (string[string.length - 1] !== '0') return 0
-    if (string === '0' || checkOperator(string[string.length - 2]))
+    if (string === '0' || isOperator(string[string.length - 2]))
       return 1
   }
 
@@ -123,7 +126,7 @@ const App = () => {
         let newPrev
         if (checkRedundantZero(prev))
           newPrev = prev.slice(0, prev.length - 1)
-        else if (checkOperator(prev[prev.length - 1])) newPrev = ''
+        else if (isOperator(prev[prev.length - 1])) newPrev = ''
         else newPrev = prev
 
         return newPrev + value
@@ -153,7 +156,7 @@ const App = () => {
     if (existResult === '') {
       setMainInput(value)
       setSubInput((prev) => {
-        if (checkOperator(prev[prev.length - 1])) {
+        if (isOperator(prev[prev.length - 1])) {
           if (value === '-') return prev + value
           else return prev.slice(0, prev.length - 1) + value
         } else return prev + value
